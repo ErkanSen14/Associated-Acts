@@ -7,7 +7,7 @@ Task = React.createClass({
   },
   render() {
     return (
-      <li>{this.props.task.name}</li>
+      <li>{this.props.task.name} - {this.props.task.rapperList}</li>
     );
   }
 });
