@@ -9,44 +9,68 @@ added = []
 
 if (Meteor.isClient) {
   Meteor.startup(function() {
-    var rappers=[]
+    var rappers = []
     React.render(<App/>, document.getElementById('container'))
     var title = "J._Cole"
     function getWikiForreal(wikiTitle) {
-      if(added.indexOf(wikiTitle)==-1){
-      added.push(wikiTitle)
-      var url = "http://dbpedia.org/sparql";
-      var query = "select ?z where {<http://dbpedia.org/resource/"+wikiTitle+"> dbo:associatedMusicalArtist ?z}"
-      var queryUrl = encodeURI(url + "?query=" + query + "&format=json");
-      var temp
-      $.ajax({
-        dataType: "jsonp",
-        url: queryUrl,
-        success: function(data) {
-          rappers=[]
-          for (var value of data.results.bindings)
-            rappers.push(value.z.value.split("http://dbpedia.org/resource/")[1])
+      rappers = []
+      if (!Rappers.findOne({name: wikiTitle})) {
+        added.push(wikiTitle)
+        var url = "http://dbpedia.org/sparql";
+        var query = "select ?z where {<http://dbpedia.org/resource/" + wikiTitle + "> dbo:associatedMusicalArtist ?z}"
+        var queryUrl = encodeURI(url + "?query=" + query + "&format=json");
+        var temp
+        $.ajax({
+          dataType: "jsonp",
+          url: queryUrl,
+          success: function(data) {
+
+            for (var value of data.results.bindings)
+              rappers.push(value.z.value.split("http://dbpedia.org/resource/")[1])
 
 
-          rapperInsert = {
-            name: wikiTitle,
-            rapperList: rappers
 
+            return insertRappers(wikiTitle,rappers,data)
           }
-          Rappers.insert(rapperInsert)
-          for (var value of data.results.bindings)
-            {temp=value.z.value.split("http://dbpedia.org/resource/")[1]
-            getWikiForreal(temp)
 
-}
+        })
+      } else {
+        return
+      }
+    }
+
+
+
+    function insertRappers(name, rappers,data){
+      if(rappers.length>0)
+      rapperInsert = {
+        name: name,
+        rapperList: rappers
+
+      }
+      else if(rappers.length<=0)
+      {
+        rapperInsert = {
+          name: name,
+          rapperList: ["err"]
         }
 
-      })
+      }
+      Rappers.insert(rapperInsert)
+
+      return recurse(data)
     }
-    else {
-      return
+
+    function recurse(data){
+      for (var value of data.results.bindings) {
+        temp = value.z.value.split("http://dbpedia.org/resource/")[1]
+        getWikiForreal(temp)
+
+      }
+
+
     }
-}
+
     getWikiForreal(title)
   })
 }
