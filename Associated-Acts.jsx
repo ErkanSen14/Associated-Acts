@@ -6,11 +6,12 @@ var counter = 0
 var rapperInsert
 listOfDefaults = ["Tupac", "Destiny's_Child", "Drake", "Wale"]
 added = []
-
+let dataset = []
+let names = []
 if (Meteor.isClient) {
   Meteor.startup(function() {
     var rappers = []
-    React.render(<App/>, document.getElementById('container'))
+    //React.render(<App/>, document.getElementById('bar'))
     var title = "J._Cole"
     function getWikiForreal(wikiTitle) {
       rappers = []
@@ -42,6 +43,8 @@ if (Meteor.isClient) {
 
 
     function insertRappers(name, rappers,data){
+      dataset.push(rappers.length)
+      names.push(name)
       if(rappers.length>0)
       rapperInsert = {
         name: name,
@@ -64,6 +67,30 @@ if (Meteor.isClient) {
     function recurse(data){
       for (var value of data.results.bindings) {
         temp = value.z.value.split("http://dbpedia.org/resource/")[1]
+        //d3 function to draw
+      let svgContainer =  d3.select("body").selectAll("svg")
+                            .data(dataset)
+                            .enter()
+                            .append("svg")
+                            .attr("class", "bar")
+                            .style("height", function(d) {
+                              const barHeight = d * 5
+                              return barHeight + "px"
+                            })
+
+      let text = svgContainer.selectAll("text")
+                             .data(names)
+                             .enter()
+                             .append("text")
+      let textLabels = text
+                           .attr("x", function(d) { return 10; })
+                           .attr("y", function(d) { return 37.5; })
+                           .text(function(d) {return d})
+                           .attr("font-family", "sans-serif")
+                           .attr("font-size", "20px")
+                           .attr("fill", "black");
+
+
         getWikiForreal(temp)
 
       }
