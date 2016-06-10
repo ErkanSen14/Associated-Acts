@@ -5,20 +5,23 @@ let texts
 let counter = 0
 let rapperInsert
 let index = 0
+let tempIndex = 0
 listOfDefaults = ["Tupac", "Destiny's_Child", "Drake", "Wale"]
-added = []
-let names = {"nodes":[{"name":"Myriel","group":1},{"name":"Napoleon","group":1},{"name":"Mlle.Baptistine","group":1},{"name":"Mme.Magloire","group":1}]}
-let links = {"links":[{"source":1,"target":0,"value":1},{"source":2,"target":0,"value":8},{"source":3,"target":0,"value":10},]}
-
+let added = []
+let names = {"nodes":[]}
+let links = {"links":[]}
+let origin = 0
+let temp2=1
 if (Meteor.isClient) {
   Meteor.startup(function() {
-  /*  let rappers = []
+   let rappers = []
     //React.render(<App/>, document.getElementById('bar'))
     let title = "J._Cole"
     function getWikiForreal(wikiTitle) {
+      tempIndex++
+      console.log(tempIndex)
       rappers = []
       if (!Rappers.findOne({name: wikiTitle})) {
-        added.push(wikiTitle)
         let url = "http://dbpedia.org/sparql";
         let query = "select ?z where {<http://dbpedia.org/resource/" + wikiTitle + "> dbo:associatedMusicalArtist ?z}"
         let queryUrl = encodeURI(url + "?query=" + query + "&format=json");
@@ -27,7 +30,6 @@ if (Meteor.isClient) {
           dataType: "jsonp",
           url: queryUrl,
           success: function(data) {
-
             for (let value of data.results.bindings)
               rappers.push(value.z.value.split("http://dbpedia.org/resource/")[1])
 
@@ -37,7 +39,8 @@ if (Meteor.isClient) {
           }
 
         })
-      } else {
+      }
+      else {
         return
       }
     }
@@ -61,21 +64,49 @@ if (Meteor.isClient) {
 
       }
       Rappers.insert(rapperInsert)
-
+      if(added.indexOf({name}) >-1) {
+          console.log(name + "is at " + added.indexOf(name))
+        }
+      else {
+      names.nodes.push({"name": name, "group": 1})
+      added.push(name)
+    }
+      let temp = origin + temp2
+      for (let value of rappers) {
+        if(added.indexOf({value}) > -1) {
+            console.log(name + "is at " + added.indexOf(name))
+          }
+          else {
+        names.nodes.push({"name": value, "group": 1})
+        added.push(value)
+      }
+        links.links.push({"source": origin, "target": temp, "value": 1})
+        temp++
+      }
+      temp2 = temp
       return recurse(data)
     }
 
     function recurse(data){
       for (let value of data.results.bindings) {
         temp = value.z.value.split("http://dbpedia.org/resource/")[1]
+        if(tempIndex === 20) {
+          break
+        }
         getWikiForreal(temp)
+        origin++
 
 }
+return
 }
 
+function getDaWiki(callback) {
+  getWikiForreal(title)
+  setTimeout(callback, 0500)
+}
 
-
-    getWikiForreal(title)*/
+function drawD3() {
+  console.log(added)
     //d3 function to draw
     var width = 960,
 height = 500
@@ -117,7 +148,10 @@ force.on("tick", function() {
       .attr("y2", function(d) { return d.target.y; });
   node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 })
-
+console.log(names)
+console.log(links)
+}
+getDaWiki(drawD3)
   })
 }
 
